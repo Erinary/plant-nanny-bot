@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="20250801-1-create-plant-table" author="Liubov Udalova">
+        <createTable tableName="plants">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="planting_date" type="timestamptz">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_watered_at" type="timestamptz">
+                <constraints nullable="true"/>
+            </column>
+            <column name="user_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notes" type="text">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="plants" baseColumnNames="user_id"
+                                 constraintName="fk_plants_users" referencedTableName="users"
+                                 referencedColumnNames="id"/>
+
+        <rollback>
+            <dropTable tableName="plants"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
