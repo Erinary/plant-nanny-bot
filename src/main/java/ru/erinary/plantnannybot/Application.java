@@ -2,6 +2,8 @@ package ru.erinary.plantnannybot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import ru.erinary.plantnannybot.config.TelegramBotProperties;
 
 /**
  * Entry point for the PlantNannyBot application.
@@ -9,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * to remind users to water their plants based on configurable schedules.
  */
 @SpringBootApplication
+@EnableConfigurationProperties(TelegramBotProperties.class)
 public class Application {
 
     /**
