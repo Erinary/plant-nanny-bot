@@ -39,7 +39,7 @@ class MigrationIntegrationTest {
 
     @Test
     void testContextLoads_and_canStoreUserAndPlant() {
-        var user = new User(1L);
+        var user = new User(1L, 2L);
         userRepository.save(user);
         var users = userRepository.findAll();
         assertNotNull(users);

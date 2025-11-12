@@ -21,20 +21,25 @@ public class User {
     @Column(name = "tg_user_id")
     private Long tgUserId;
 
+    @Column(name = "tg_chat_id")
+    private Long chatId;
+
     /**
      * Default constructor.
      */
-    protected User() {
+    public User() {
     }
 
     /**
      * Creates a new {@link User} instance.
      *
      * @param tgUserId user's Telegram id
+     * @param chatId   chat id
      */
-    public User(final Long tgUserId) {
+    public User(final Long tgUserId, final Long chatId) {
         this.id = UUID.randomUUID();
         this.tgUserId = tgUserId;
+        this.chatId = chatId;
     }
 
     public UUID getId() {
@@ -43,5 +48,9 @@ public class User {
 
     public Long getTgUserId() {
         return tgUserId;
+    }
+
+    public Long getChatId() {
+        return chatId;
     }
 }

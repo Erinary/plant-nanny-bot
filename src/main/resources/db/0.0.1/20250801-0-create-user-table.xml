@@ -12,6 +12,9 @@
             <column name="tg_user_id" type="bigint">
                 <constraints nullable="false" unique="true"/>
             </column>
+            <column name="tg_chat_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
         </createTable>
 
         <rollback>

@@ -2,6 +2,9 @@ package ru.erinary.plantnannybot.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Properties of a Telegram bot.
+ */
 @ConfigurationProperties(prefix = "telegram.bot")
 public class TelegramBotProperties {
 
