@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.erinary.plantnannybot.api.model.UserModel;
 import ru.erinary.plantnannybot.config.TelegramBotProperties;
 import ru.erinary.plantnannybot.service.exceptions.EntityAlreadyExistsException;
+import ru.erinary.plantnannybot.service.plant.PlantService;
 import ru.erinary.plantnannybot.service.user.UserService;
 
 import java.util.Arrays;
@@ -28,17 +29,23 @@ public class PlantNannyBot extends TelegramLongPollingBot {
 
     private final UserService userService;
 
+    private final PlantService plantService;
+
     /**
      * Creates a new {@link PlantNannyBot} instance.
      *
      * @param properties  bot's properties
      * @param userService {@link UserService}
+     * @param plantService {@link PlantService}
      */
     @Autowired
-    public PlantNannyBot(final TelegramBotProperties properties, final UserService userService) {
+    public PlantNannyBot(final TelegramBotProperties properties,
+                         final UserService userService,
+                         final PlantService plantService) {
         super(properties.getToken());
         this.properties = properties;
         this.userService = userService;
+        this.plantService = plantService;
     }
 
     @Override
@@ -98,7 +105,15 @@ public class PlantNannyBot extends TelegramLongPollingBot {
     }
 
     private void handlePlants(final Message msg) {
-        //TODO
+        var tgUser = msg.getFrom();
+        logger.info("User {} requested plants", tgUser.getId());
+        var plants = plantService.getUserPlants(tgUser.getId());
+        if (plants.isEmpty()) {
+            sendMessage(msg.getChatId(), BotMessages.EMPTY_PLANT_LIST);
+        } else {
+            //TODO
+            sendMessage(msg.getChatId(), "It's under development!");
+        }
     }
 
     /**

@@ -28,4 +28,9 @@ public class BotMessages {
      * User is already registered.
      */
     public static final String REGISTER_ALREADY_EXISTS = "You’re already registered \uD83C\uDF31";
+
+    /**
+     * User has no plants.
+     */
+    public static final String EMPTY_PLANT_LIST = "You don't have any plants yet";
 }

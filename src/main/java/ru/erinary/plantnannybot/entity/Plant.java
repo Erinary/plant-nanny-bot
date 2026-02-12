@@ -40,7 +40,7 @@ public class Plant {
     /**
      * Default constructor.
      */
-    protected Plant() {
+    public Plant() {
     }
 
     /**
