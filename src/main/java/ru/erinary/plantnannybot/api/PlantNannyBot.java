@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.erinary.plantnannybot.api.model.PlantModel;
 import ru.erinary.plantnannybot.api.model.UserModel;
 import ru.erinary.plantnannybot.config.TelegramBotProperties;
 import ru.erinary.plantnannybot.service.exceptions.EntityAlreadyExistsException;
@@ -34,8 +35,8 @@ public class PlantNannyBot extends TelegramLongPollingBot {
     /**
      * Creates a new {@link PlantNannyBot} instance.
      *
-     * @param properties  bot's properties
-     * @param userService {@link UserService}
+     * @param properties   bot's properties
+     * @param userService  {@link UserService}
      * @param plantService {@link PlantService}
      */
     @Autowired
@@ -67,8 +68,10 @@ public class PlantNannyBot extends TelegramLongPollingBot {
                         case START -> handleStart(msg);
                         case REGISTER -> handleRegister(msg);
                         case PLANTS -> handlePlants(msg);
-                        default -> logger.warn("Unknown command: {}", msg.getText());
+                        default -> logger.warn("Unsupported command: {}", msg.getText());
                     }
+                } else {
+                    handleUnknownCommand(msg);
                 }
             }
         }
@@ -111,9 +114,17 @@ public class PlantNannyBot extends TelegramLongPollingBot {
         if (plants.isEmpty()) {
             sendMessage(msg.getChatId(), BotMessages.EMPTY_PLANT_LIST);
         } else {
-            //TODO
-            sendMessage(msg.getChatId(), "It's under development!");
+            var stringBuilder = new StringBuilder();
+            for (PlantModel plant : plants) {
+                stringBuilder.append("• ").append(plant.name()).append(System.lineSeparator());
+            }
+            sendMessage(msg.getChatId(), stringBuilder.toString());
         }
+    }
+
+    private void handleUnknownCommand(final Message msg) {
+        logger.warn("Unknown command: {}", msg.getText());
+        sendMessage(msg.getChatId(), BotMessages.UNKNOWN_COMMAND);
     }
 
     /**

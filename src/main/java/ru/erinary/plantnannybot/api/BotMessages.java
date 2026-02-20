@@ -33,4 +33,9 @@ public class BotMessages {
      * User has no plants.
      */
     public static final String EMPTY_PLANT_LIST = "You don't have any plants yet";
+
+    /**
+     * Unknown command.
+     */
+    public static final String UNKNOWN_COMMAND = "Oh, I don't know this command";
 }
