@@ -14,7 +14,6 @@ import java.util.List;
 public class PlantServiceImpl implements PlantService {
 
     private final PlantRepository repository;
-
     private final PlantMapper mapper;
 
     /**
