@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface ConversationStateStore {
 
     /**
-     * Retrieves the current conversation state for a given chat ID.
+     * Retrieves the current conversation nextState for a given chat ID.
      *
      * @param chatID the unique identifier of the chat
      * @return an Optional containing the {@link ConversationState} if found
@@ -18,7 +18,7 @@ public interface ConversationStateStore {
     Optional<ConversationState> get(Long chatID);
 
     /**
-     * Stores a conversation state.
+     * Stores a conversation nextState.
      *
      * @param chatId the unique identifier of the chat
      * @param step   the {@link ConversationState} to be stored
@@ -26,7 +26,7 @@ public interface ConversationStateStore {
     void put(Long chatId, ConversationState step);
 
     /**
-     * Clears the conversation state for a given chat ID.
+     * Clears the conversation nextState for a given chat ID.
      *
      * @param chatID the unique identifier of the chat
      */

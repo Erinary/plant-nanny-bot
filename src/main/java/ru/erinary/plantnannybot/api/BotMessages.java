@@ -35,7 +35,24 @@ public class BotMessages {
     public static final String EMPTY_PLANT_LIST = "You don't have any plants yet";
 
     /**
+     * Add plant wizard messages.
+     */
+    public static final String ADD_PLANT_ASK_NAME = "Please give your plant a name, or you can use /cancel command";
+
+    public static final String ADD_PLANT_ASK_NOTES = """
+            Thank you! Now, please provide some notes about your plant.
+            Or, use /skip to skip this step or /cancel to cancel the operation.""";
+
+    public static final String ADD_PLANT_SUCCESS = "Thank you! Your plant was added successfully.";
+
+    /**
      * Unknown command.
      */
-    public static final String UNKNOWN_COMMAND = "Oh, I don't know this command";
+    public static final String UNKNOWN_COMMAND_ERROR = "Oh, I don't know this command";
+
+    /**
+     * Error message when user input is invalid.
+     */
+    public static final String INPUT_ERROR = "Sorry, I couldn't understand your input. Please try to use one of the commands.";
+
 }

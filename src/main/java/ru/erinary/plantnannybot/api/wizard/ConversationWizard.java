@@ -11,7 +11,7 @@ public interface ConversationWizard {
      * @param chatId user's chat id
      * @return initial conversation state
      */
-    ConversationState start(Long chatId);
+    WizardStepResult start(Long chatId);
 
     /**
      * Processes the next step of the conversation.
@@ -20,7 +20,7 @@ public interface ConversationWizard {
      * @param message user's message
      * @return updated conversation state
      */
-    ConversationState nextStep(ConversationState state, String message);
+    WizardStepResult nextStep(ConversationState state, String message);
 
     /**
      * Returns the conversation mode supported by this wizard.
