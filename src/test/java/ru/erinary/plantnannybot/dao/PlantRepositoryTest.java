@@ -12,9 +12,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.erinary.plantnannybot.entity.Plant;
 import ru.erinary.plantnannybot.entity.User;
 
-import java.time.Instant;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 @Testcontainers
@@ -40,9 +38,9 @@ class PlantRepositoryTest {
     void testFindPlantsByTgUserId() {
         var user = new User(1L, 2L);
         entityManager.persist(user);
-        var basil = new Plant("Basil", Instant.now(), user);
+        var basil = new Plant("Basil", user, "Some notes");
         entityManager.persist(basil);
-        var pepper = new Plant("Pepper", Instant.now(), user);
+        var pepper = new Plant("Pepper", user, "Some notes");
         entityManager.persist(pepper);
 
         var plants = plantRepository.findByUserTgUserId(user.getTgUserId());

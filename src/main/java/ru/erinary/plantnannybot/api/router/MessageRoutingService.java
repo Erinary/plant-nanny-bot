@@ -124,7 +124,7 @@ public class MessageRoutingService {
     private ReplyMessage handleAddPlant(final IncomingMessage message) {
         var chatId = message.chatId();
         var wizard = wizards.get(ConversationMode.ADD_PLANT);
-        var wizardStepResult = wizard.start(chatId);
+        var wizardStepResult = wizard.start(message);
         conversationStateStore.put(chatId, wizardStepResult.nextState());
         return new ReplyMessage(chatId, wizardStepResult.replyText());
     }
@@ -136,7 +136,7 @@ public class MessageRoutingService {
 
     private ReplyMessage continueConversation(final IncomingMessage message, final ConversationState state) {
         var wizard = wizards.get(state.getMode());
-        var wizardStepResult = wizard.nextStep(state, message.text());
+        var wizardStepResult = wizard.nextStep(state, message);
         if (wizardStepResult.nextState() != null) {
             conversationStateStore.put(message.chatId(), wizardStepResult.nextState());
         } else {

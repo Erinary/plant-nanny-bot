@@ -13,8 +13,6 @@ import ru.erinary.plantnannybot.dao.UserRepository;
 import ru.erinary.plantnannybot.entity.Plant;
 import ru.erinary.plantnannybot.entity.User;
 
-import java.time.Instant;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,7 +42,7 @@ class MigrationIntegrationTest {
         var users = userRepository.findAll();
         assertNotNull(users);
 
-        var plant = new Plant("Basil", Instant.now(), user);
+        var plant = new Plant("Basil", user, "Some notes");
         plantRepository.save(plant);
         var plants = plantRepository.findAll();
         assertNotNull(plants);

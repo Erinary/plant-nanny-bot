@@ -1,5 +1,7 @@
 package ru.erinary.plantnannybot.api.wizard;
 
+import ru.erinary.plantnannybot.api.router.dto.IncomingMessage;
+
 /**
  * Interface for conversation wizards.
  */
@@ -8,10 +10,10 @@ public interface ConversationWizard {
     /**
      * Starts a new conversation.
      *
-     * @param chatId user's chat id
+     * @param message user's message
      * @return initial conversation state
      */
-    WizardStepResult start(Long chatId);
+    WizardStepResult start(IncomingMessage message);
 
     /**
      * Processes the next step of the conversation.
@@ -20,7 +22,7 @@ public interface ConversationWizard {
      * @param message user's message
      * @return updated conversation state
      */
-    WizardStepResult nextStep(ConversationState state, String message);
+    WizardStepResult nextStep(ConversationState state, IncomingMessage message);
 
     /**
      * Returns the conversation mode supported by this wizard.

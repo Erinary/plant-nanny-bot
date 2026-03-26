@@ -13,6 +13,6 @@ public class PlantMapper implements Mapper<Plant, PlantModel> {
 
     @Override
     public PlantModel map(final Plant plant) {
-        return new PlantModel(plant.getName());
+        return new PlantModel(plant.getName(), plant.getUser().getTgUserId(), plant.getNotes());
     }
 }

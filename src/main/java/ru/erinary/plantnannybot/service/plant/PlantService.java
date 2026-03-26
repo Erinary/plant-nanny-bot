@@ -16,4 +16,12 @@ public interface PlantService {
      * @return list of user's plants
      */
     List<PlantModel> getUserPlants(Long tgUserId);
+
+    /**
+     * Save a plant.
+     *
+     * @param model plant model
+     * @return saved plant model
+     */
+    PlantModel save(PlantModel model);
 }

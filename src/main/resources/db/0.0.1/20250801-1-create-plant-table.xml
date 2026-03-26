@@ -12,9 +12,6 @@
             <column name="name" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="planting_date" type="timestamptz">
-                <constraints nullable="false"/>
-            </column>
             <column name="last_watered_at" type="timestamptz">
                 <constraints nullable="true"/>
             </column>

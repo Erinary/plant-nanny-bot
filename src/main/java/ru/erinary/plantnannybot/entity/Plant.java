@@ -24,9 +24,6 @@ public class Plant {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "planting_date")
-    private Instant plantingDate;
-
     @Column(name = "last_watered_at")
     private Instant lastWateredAt;
 
@@ -47,14 +44,13 @@ public class Plant {
      * Creates a new {@link Plant} instance.
      *
      * @param name         plant's name
-     * @param plantingDate when the plant was planted
      * @param user         related {@link User}
      */
-    public Plant(final String name, final Instant plantingDate, final User user) {
+    public Plant(final String name, final User user, final String notes) {
         this.id = UUID.randomUUID();
         this.name = name;
-        this.plantingDate = plantingDate;
         this.user = user;
+        this.notes = notes;
     }
 
     public UUID getId() {
@@ -63,10 +59,6 @@ public class Plant {
 
     public String getName() {
         return name;
-    }
-
-    public Instant getPlantingDate() {
-        return plantingDate;
     }
 
     public Instant getLastWateredAt() {

@@ -39,6 +39,8 @@ public class BotMessages {
      */
     public static final String ADD_PLANT_ASK_NAME = "Please give your plant a name, or you can use /cancel command";
 
+    public static final String ADD_PLANT_NAME_NOT_EMPTY = "Plant name can't be empty, please try again";
+
     public static final String ADD_PLANT_ASK_NOTES = """
             Thank you! Now, please provide some notes about your plant.
             Or, use /skip to skip this step or /cancel to cancel the operation.""";
