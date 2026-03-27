@@ -11,6 +11,7 @@ import ru.erinary.plantnannybot.api.wizard.ConversationMode;
 import ru.erinary.plantnannybot.api.wizard.ConversationState;
 import ru.erinary.plantnannybot.api.wizard.ConversationWizard;
 import ru.erinary.plantnannybot.api.wizard.store.ConversationStateStore;
+import ru.erinary.plantnannybot.service.user.UserService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public class MessageRoutingService {
     private final ConversationStateStore conversationStateStore;
     private final Map<ConversationMode, ConversationWizard> wizards;
     private final Map<Command, CommandHandler> handlers;
+    private final UserService userService;
 
     /**
      * Creates a new {@link MessageRoutingService} instance.
@@ -37,15 +39,18 @@ public class MessageRoutingService {
      * @param conversationStateStore {@link ConversationStateStore}
      * @param wizards                list of {@link ConversationWizard}
      * @param handlers               list of {@link CommandHandler}
+     * @param userService            {@link UserService}
      */
     public MessageRoutingService(final ConversationStateStore conversationStateStore,
                                  final List<ConversationWizard> wizards,
-                                 final List<CommandHandler> handlers) {
+                                 final List<CommandHandler> handlers,
+                                 final UserService userService) {
         this.conversationStateStore = conversationStateStore;
         this.wizards = wizards.stream()
                 .collect(Collectors.toMap(ConversationWizard::supportedMode, Function.identity()));
         this.handlers = handlers.stream()
                 .collect(Collectors.toMap(CommandHandler::command, Function.identity()));
+        this.userService = userService;
     }
 
     /**
@@ -67,13 +72,18 @@ public class MessageRoutingService {
         if (command == null) {
             return handleUnknownCommand(message);
         }
+        if (command.requiresRegistration && !userService.isUserRegistered(message.user().getId())) {
+            return new ReplyMessage(message.chatId(), BotMessages.USER_MUST_BE_REGISTERED_ERROR);
+        }
         var handler = handlers.get(command);
         if (handler != null) {
             return handler.handle(message);
         } else {
-            //command is not handled by any handler, so it's a conversation
-            //noinspection SwitchStatementWithTooFewBranches
+            //command is not handled by any handler, so it's a conversation control command
             switch (command) {
+                case CANCEL -> {
+                    return handleCancel(message);
+                }
                 case ADD_PLANT -> {
                     return handleAddPlant(message);
                 }
@@ -83,7 +93,6 @@ public class MessageRoutingService {
                 }
             }
         }
-
     }
 
     private ReplyMessage routeConversation(final IncomingMessage message) {
@@ -95,19 +104,6 @@ public class MessageRoutingService {
             logger.warn("No active conversation state found for chatId {}", chatId);
             return new ReplyMessage(chatId, BotMessages.INPUT_ERROR);
         }
-    }
-
-    private ReplyMessage handleAddPlant(final IncomingMessage message) {
-        var chatId = message.chatId();
-        var wizard = wizards.get(ConversationMode.ADD_PLANT);
-        var wizardStepResult = wizard.start(message);
-        conversationStateStore.put(chatId, wizardStepResult.nextState());
-        return new ReplyMessage(chatId, wizardStepResult.replyText());
-    }
-
-    private ReplyMessage handleUnknownCommand(final IncomingMessage msg) {
-        logger.warn("Unknown command: {}", msg.text());
-        return new ReplyMessage(msg.chatId(), BotMessages.UNKNOWN_COMMAND_ERROR);
     }
 
     private ReplyMessage continueConversation(final IncomingMessage message, final ConversationState state) {
@@ -122,6 +118,44 @@ public class MessageRoutingService {
         return new ReplyMessage(message.chatId(), wizardStepResult.replyText());
     }
 
+    private ReplyMessage handleUnknownCommand(final IncomingMessage msg) {
+        logger.warn("Unknown command: {}", msg.text());
+        return new ReplyMessage(msg.chatId(), BotMessages.UNKNOWN_COMMAND_ERROR);
+    }
+
+    private ReplyMessage handleCancel(final IncomingMessage message) {
+        var chatId = message.chatId();
+        var conversationState = conversationStateStore.get(chatId);
+        if (conversationState.isPresent()) {
+            conversationStateStore.clear(chatId);
+            logger.info("Conversation canceled for chatId {}", chatId);
+            return new ReplyMessage(chatId, BotMessages.CANCEL_ACTION);
+        } else {
+            logger.warn("No active conversation state to cancel for chatId {}", chatId);
+            return new ReplyMessage(chatId, BotMessages.NO_ACTIVE_ACTION_ERROR);
+        }
+    }
+
+    private ReplyMessage handleAddPlant(final IncomingMessage message) {
+        var chatId = message.chatId();
+        if (hasActiveConversation(chatId)) {
+            return new ReplyMessage(chatId, BotMessages.ACTION_IN_PROGRESS_ERROR);
+        }
+        var wizard = wizards.get(ConversationMode.ADD_PLANT);
+        var wizardStepResult = wizard.start(message);
+        conversationStateStore.put(chatId, wizardStepResult.nextState());
+        return new ReplyMessage(chatId, wizardStepResult.replyText());
+    }
+
+    private boolean hasActiveConversation(final Long chatId) {
+        var conversationState = conversationStateStore.get(chatId);
+        if (conversationState.isPresent()) {
+            logger.warn("Conversation already in progress for chatId {}", chatId);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Commands of the bot.
      */
@@ -130,24 +164,30 @@ public class MessageRoutingService {
         /**
          * Initial command for an interaction with the bot.
          */
-        START("/start"),
+        START("/start", false),
 
         /**
          * Creates and save a new user.
          */
-        REGISTER("/register"),
+        REGISTER("/register", false),
 
         /**
          * Returns user's plants.
          */
-        PLANTS("/plants"),
+        PLANTS("/plants", true),
 
         /**
          * Starts a new conversation about adding a new plant.
          */
-        ADD_PLANT("/addplant");
+        ADD_PLANT("/addplant", true),
+
+        /**
+         * Cancels the current conversation.
+         */
+        CANCEL("/cancel", false);
 
         private final String text;
+        private final boolean requiresRegistration;
         private static final Map<String, Command> COMMAND_MAP;
 
         static {
@@ -158,17 +198,15 @@ public class MessageRoutingService {
             COMMAND_MAP = Collections.unmodifiableMap(map);
         }
 
-        Command(final String text) {
-            this.text = text;
-        }
-
         /**
-         * Returns a text value of the command.
+         * Creates a new {@link Command} instance.
          *
-         * @return a text value of the command
+         * @param text                 the command text
+         * @param requiresRegistration true if the command requires user registration
          */
-        public String text() {
-            return text;
+        Command(final String text, final boolean requiresRegistration) {
+            this.text = text;
+            this.requiresRegistration = requiresRegistration;
         }
 
         /**

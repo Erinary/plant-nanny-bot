@@ -16,6 +16,7 @@ public class BotMessages {
             /register – Register yourself to start using the bot
             /plants – View your plants and their watering schedules
             /addplant - Add a new plant to your list
+            /cancel - Cancel the current action
             
             More features coming soon!
             """;
@@ -34,6 +35,23 @@ public class BotMessages {
      * User has no plants.
      */
     public static final String EMPTY_PLANT_LIST = "You don't have any plants yet";
+
+    /**
+     * Cancel current action.
+     */
+    public static final String CANCEL_ACTION = "Current action was cancelled";
+
+    /**
+     * Error message when there is no active action to cancel.
+     */
+    public static final String NO_ACTIVE_ACTION_ERROR = "There is no active action to cancel";
+
+    /**
+     * Error message when the user tries to start a new action while there is already an active one.
+     */
+    public static final String ACTION_IN_PROGRESS_ERROR = """
+            You already have an action in progress.
+            Please finish it first or send /cancel to cancel it.""";
 
     /**
      * Add plant wizard messages.
@@ -57,6 +75,11 @@ public class BotMessages {
      * Unsupported command.
      */
     public static final String UNSUPPORTED_COMMAND_ERROR = "Oh, this command is not supported yet, sorry!";
+
+    /**
+     * Error message when the user tries to use a command that requires registration.
+     */
+    public static final String USER_MUST_BE_REGISTERED_ERROR = "You must be registered to use this command. Please use /register first.";
 
     /**
      * Error message when user input is invalid.

@@ -23,8 +23,8 @@ public class InMemoryConversationStateStore implements ConversationStateStore {
     }
 
     @Override
-    public Optional<ConversationState> get(final Long chatID) {
-        return Optional.ofNullable(storage.get(chatID));
+    public Optional<ConversationState> get(final Long chatId) {
+        return Optional.ofNullable(storage.get(chatId));
     }
 
     @Override
@@ -33,8 +33,8 @@ public class InMemoryConversationStateStore implements ConversationStateStore {
     }
 
     @Override
-    public void clear(final Long chatID) {
-        storage.remove(chatID);
+    public void clear(final Long chatId) {
+        storage.remove(chatId);
     }
 
 }

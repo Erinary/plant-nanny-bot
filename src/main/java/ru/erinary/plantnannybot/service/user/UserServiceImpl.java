@@ -36,4 +36,9 @@ public class UserServiceImpl implements UserService {
         var user = new User(model.tgUserId(), model.chatId());
         return mapper.map(repository.save(user));
     }
+
+    @Override
+    public boolean isUserRegistered(final Long tgUserId) {
+        return repository.existsByTgUserId(tgUserId);
+    }
 }

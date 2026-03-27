@@ -13,4 +13,11 @@ public interface UserService {
      * @param model user's model
      */
     UserModel save(UserModel model);
+
+    /**
+     * Checks if a user is registered.
+     * @param tgUserId user's telegram id
+     * @return true if a user is registered, false otherwise
+     */
+    boolean isUserRegistered(Long tgUserId);
 }

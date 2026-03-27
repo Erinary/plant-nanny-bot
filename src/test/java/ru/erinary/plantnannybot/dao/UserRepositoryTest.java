@@ -9,14 +9,14 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import ru.erinary.plantnannybot.entity.Plant;
 import ru.erinary.plantnannybot.entity.User;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @Testcontainers
-class PlantRepositoryTest {
+public class UserRepositoryTest {
 
     @Container
     private final static PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:16.1");
@@ -31,18 +31,13 @@ class PlantRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
     @Autowired
-    private PlantRepository plantRepository;
+    private UserRepository userRepository;
 
     @Test
-    void testFindPlantsByTgUserId() {
+    void testExistsByTgUserId() {
         var user = new User(1L, 2L);
         entityManager.persist(user);
-        var basil = new Plant("Basil", user, "Some notes");
-        entityManager.persist(basil);
-        var pepper = new Plant("Pepper", user, "Some notes");
-        entityManager.persist(pepper);
-
-        var plants = plantRepository.findByUserTgUserId(user.getTgUserId());
-        assertEquals(2, plants.size());
+        assertTrue(userRepository.existsByTgUserId(1L));
+        assertFalse(userRepository.existsByTgUserId(3L));
     }
 }
