@@ -1,21 +1,16 @@
 package ru.erinary.plantnannybot.api.router;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import ru.erinary.plantnannybot.api.BotMessages;
-import ru.erinary.plantnannybot.api.model.PlantModel;
-import ru.erinary.plantnannybot.api.model.UserModel;
+import ru.erinary.plantnannybot.api.command.CommandHandler;
 import ru.erinary.plantnannybot.api.router.dto.IncomingMessage;
 import ru.erinary.plantnannybot.api.router.dto.ReplyMessage;
 import ru.erinary.plantnannybot.api.wizard.ConversationMode;
 import ru.erinary.plantnannybot.api.wizard.ConversationState;
 import ru.erinary.plantnannybot.api.wizard.ConversationWizard;
 import ru.erinary.plantnannybot.api.wizard.store.ConversationStateStore;
-import ru.erinary.plantnannybot.service.exceptions.EntityAlreadyExistsException;
-import ru.erinary.plantnannybot.service.plant.PlantService;
-import ru.erinary.plantnannybot.service.user.UserService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,24 +29,23 @@ public class MessageRoutingService {
 
     private final ConversationStateStore conversationStateStore;
     private final Map<ConversationMode, ConversationWizard> wizards;
-    private final UserService userService;
-    private final PlantService plantService;
+    private final Map<Command, CommandHandler> handlers;
 
     /**
      * Creates a new {@link MessageRoutingService} instance.
      *
      * @param conversationStateStore {@link ConversationStateStore}
      * @param wizards                list of {@link ConversationWizard}
+     * @param handlers               list of {@link CommandHandler}
      */
     public MessageRoutingService(final ConversationStateStore conversationStateStore,
                                  final List<ConversationWizard> wizards,
-                                 final UserService userService,
-                                 final PlantService plantService) {
+                                 final List<CommandHandler> handlers) {
         this.conversationStateStore = conversationStateStore;
         this.wizards = wizards.stream()
                 .collect(Collectors.toMap(ConversationWizard::supportedMode, Function.identity()));
-        this.userService = userService;
-        this.plantService = plantService;
+        this.handlers = handlers.stream()
+                .collect(Collectors.toMap(CommandHandler::command, Function.identity()));
     }
 
     /**
@@ -61,63 +55,45 @@ public class MessageRoutingService {
      * @return reply message {@link ReplyMessage}
      */
     public ReplyMessage routeMessage(final IncomingMessage message) {
-        var chatId = message.chatId();
-        ReplyMessage replyMessage = new ReplyMessage(chatId, StringUtils.EMPTY);
         if (message.isCommand()) {
-            var command = Command.fromText(message.text());
-            if (command != null) {
-                switch (command) {
-                    case START -> replyMessage = handleStart(message);
-                    case REGISTER -> replyMessage = handleRegister(message);
-                    case PLANTS -> replyMessage = handlePlants(message);
-                    case ADD_PLANT -> replyMessage = handleAddPlant(message);
-                    default -> logger.warn("Unsupported command: {}", message.text());
+            return routeCommand(message);
+        } else {
+            return routeConversation(message);
+        }
+    }
+
+    private ReplyMessage routeCommand(final IncomingMessage message) {
+        var command = Command.fromText(message.text());
+        if (command == null) {
+            return handleUnknownCommand(message);
+        }
+        var handler = handlers.get(command);
+        if (handler != null) {
+            return handler.handle(message);
+        } else {
+            //command is not handled by any handler, so it's a conversation
+            //noinspection SwitchStatementWithTooFewBranches
+            switch (command) {
+                case ADD_PLANT -> {
+                    return handleAddPlant(message);
                 }
-            } else {
-                replyMessage = handleUnknownCommand(message);
-            }
-        } else {
-            var conversationState = conversationStateStore.get(chatId);
-            if (conversationState.isPresent()) {
-                replyMessage = continueConversation(message, conversationState.get());
-            } else {
-                logger.warn("No conversation nextState found for chatId {}", chatId);
-                replyMessage = new ReplyMessage(chatId, BotMessages.INPUT_ERROR);
+                default -> {
+                    logger.warn("Unsupported command: {}", message.text());
+                    return new ReplyMessage(message.chatId(), BotMessages.UNSUPPORTED_COMMAND_ERROR);
+                }
             }
         }
-        return replyMessage;
+
     }
 
-    private ReplyMessage handleStart(final IncomingMessage message) {
-        var tgUser = message.user();
-        logger.info("User {} started the bot", tgUser.getId());
-        return new ReplyMessage(message.chatId(), BotMessages.INIT);
-    }
-
-    private ReplyMessage handleRegister(final IncomingMessage message) {
-        var model = new UserModel(message.user().getId(), message.chatId());
-        try {
-            userService.save(model);
-            logger.info("User {} was registered", message.user().getId());
-            return new ReplyMessage(message.chatId(), BotMessages.REGISTER_SUCCESS);
-        } catch (EntityAlreadyExistsException e) {
-            logger.warn("Repeated registration attempt by user {}", message.user().getId());
-            return new ReplyMessage(message.chatId(), BotMessages.REGISTER_ALREADY_EXISTS);
-        }
-    }
-
-    private ReplyMessage handlePlants(final IncomingMessage message) {
-        var tgUser = message.user();
-        logger.info("User {} requested plants", tgUser.getId());
-        var plants = plantService.getUserPlants(tgUser.getId());
-        if (plants.isEmpty()) {
-            return new ReplyMessage(message.chatId(), BotMessages.EMPTY_PLANT_LIST);
+    private ReplyMessage routeConversation(final IncomingMessage message) {
+        var chatId = message.chatId();
+        var conversationState = conversationStateStore.get(chatId);
+        if (conversationState.isPresent()) {
+            return continueConversation(message, conversationState.get());
         } else {
-            var stringBuilder = new StringBuilder();
-            for (PlantModel plant : plants) {
-                stringBuilder.append("• ").append(plant.name()).append(System.lineSeparator());
-            }
-            return new ReplyMessage(message.chatId(), stringBuilder.toString());
+            logger.warn("No active conversation state found for chatId {}", chatId);
+            return new ReplyMessage(chatId, BotMessages.INPUT_ERROR);
         }
     }
 
@@ -167,7 +143,7 @@ public class MessageRoutingService {
         PLANTS("/plants"),
 
         /**
-         * Starts a new conversation for adding a new plant.
+         * Starts a new conversation about adding a new plant.
          */
         ADD_PLANT("/addplant");
 

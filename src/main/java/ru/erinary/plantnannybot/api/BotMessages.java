@@ -53,6 +53,11 @@ public class BotMessages {
     public static final String UNKNOWN_COMMAND_ERROR = "Oh, I don't know this command";
 
     /**
+     * Unsupported command.
+     */
+    public static final String UNSUPPORTED_COMMAND_ERROR = "Oh, this command is not supported yet, sorry!";
+
+    /**
      * Error message when user input is invalid.
      */
     public static final String INPUT_ERROR = "Sorry, I couldn't understand your input. Please try to use one of the commands.";
