@@ -3,6 +3,7 @@ package ru.erinary.plantnannybot.api.router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.erinary.plantnannybot.api.BotCommand;
 import ru.erinary.plantnannybot.api.BotMessages;
 import ru.erinary.plantnannybot.api.command.CommandHandler;
 import ru.erinary.plantnannybot.api.router.dto.IncomingMessage;
@@ -13,8 +14,6 @@ import ru.erinary.plantnannybot.api.wizard.ConversationWizard;
 import ru.erinary.plantnannybot.api.wizard.store.ConversationStateStore;
 import ru.erinary.plantnannybot.service.user.UserService;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -30,7 +29,7 @@ public class MessageRoutingService {
 
     private final ConversationStateStore conversationStateStore;
     private final Map<ConversationMode, ConversationWizard> wizards;
-    private final Map<Command, CommandHandler> handlers;
+    private final Map<BotCommand, CommandHandler> handlers;
     private final UserService userService;
 
     /**
@@ -68,11 +67,11 @@ public class MessageRoutingService {
     }
 
     private ReplyMessage routeCommand(final IncomingMessage message) {
-        var command = Command.fromText(message.text());
+        var command = BotCommand.fromText(message.text());
         if (command == null) {
             return handleUnknownCommand(message);
         }
-        if (command.requiresRegistration && !userService.isUserRegistered(message.user().getId())) {
+        if (command.isRequiresRegistration() && !userService.isUserRegistered(message.user().getId())) {
             return new ReplyMessage(message.chatId(), BotMessages.USER_MUST_BE_REGISTERED_ERROR);
         }
         var handler = handlers.get(command);
@@ -81,11 +80,14 @@ public class MessageRoutingService {
         } else {
             //command is not handled by any handler, so it's a conversation control command
             switch (command) {
-                case CANCEL -> {
+                case BotCommand.ADD_PLANT -> {
+                    return handleAddPlant(message);
+                }
+                case BotCommand.CANCEL -> {
                     return handleCancel(message);
                 }
-                case ADD_PLANT -> {
-                    return handleAddPlant(message);
+                case BotCommand.SKIP -> {
+                    return handleSkip(message);
                 }
                 default -> {
                     logger.warn("Unsupported command: {}", message.text());
@@ -123,6 +125,17 @@ public class MessageRoutingService {
         return new ReplyMessage(msg.chatId(), BotMessages.UNKNOWN_COMMAND_ERROR);
     }
 
+    private ReplyMessage handleAddPlant(final IncomingMessage message) {
+        var chatId = message.chatId();
+        if (hasActiveConversation(chatId)) {
+            return new ReplyMessage(chatId, BotMessages.ACTION_IN_PROGRESS_ERROR);
+        }
+        var wizard = wizards.get(ConversationMode.ADD_PLANT);
+        var wizardStepResult = wizard.start(message);
+        conversationStateStore.put(chatId, wizardStepResult.nextState());
+        return new ReplyMessage(chatId, wizardStepResult.replyText());
+    }
+
     private ReplyMessage handleCancel(final IncomingMessage message) {
         var chatId = message.chatId();
         var conversationState = conversationStateStore.get(chatId);
@@ -136,15 +149,14 @@ public class MessageRoutingService {
         }
     }
 
-    private ReplyMessage handleAddPlant(final IncomingMessage message) {
+    private ReplyMessage handleSkip(final IncomingMessage message) {
         var chatId = message.chatId();
-        if (hasActiveConversation(chatId)) {
-            return new ReplyMessage(chatId, BotMessages.ACTION_IN_PROGRESS_ERROR);
+        var conversationState = conversationStateStore.get(chatId);
+        if (conversationState.isEmpty()) {
+            logger.warn("No active conversation state to skip for chatId {}", chatId);
+            return new ReplyMessage(chatId, BotMessages.NO_ACTIVE_CONVERSATION_STEP_ERROR);
         }
-        var wizard = wizards.get(ConversationMode.ADD_PLANT);
-        var wizardStepResult = wizard.start(message);
-        conversationStateStore.put(chatId, wizardStepResult.nextState());
-        return new ReplyMessage(chatId, wizardStepResult.replyText());
+        return continueConversation(message, conversationState.get());
     }
 
     private boolean hasActiveConversation(final Long chatId) {
@@ -154,69 +166,5 @@ public class MessageRoutingService {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Commands of the bot.
-     */
-    public enum Command {
-
-        /**
-         * Initial command for an interaction with the bot.
-         */
-        START("/start", false),
-
-        /**
-         * Creates and save a new user.
-         */
-        REGISTER("/register", false),
-
-        /**
-         * Returns user's plants.
-         */
-        PLANTS("/plants", true),
-
-        /**
-         * Starts a new conversation about adding a new plant.
-         */
-        ADD_PLANT("/addplant", true),
-
-        /**
-         * Cancels the current conversation.
-         */
-        CANCEL("/cancel", false);
-
-        private final String text;
-        private final boolean requiresRegistration;
-        private static final Map<String, Command> COMMAND_MAP;
-
-        static {
-            Map<String, Command> map = new HashMap<>();
-            for (Command command : values()) {
-                map.put(command.text, command);
-            }
-            COMMAND_MAP = Collections.unmodifiableMap(map);
-        }
-
-        /**
-         * Creates a new {@link Command} instance.
-         *
-         * @param text                 the command text
-         * @param requiresRegistration true if the command requires user registration
-         */
-        Command(final String text, final boolean requiresRegistration) {
-            this.text = text;
-            this.requiresRegistration = requiresRegistration;
-        }
-
-        /**
-         * Returns a {@link Command} instance from a text value.
-         *
-         * @param text text value of the command
-         * @return a {@link Command} instance
-         */
-        public static Command fromText(final String text) {
-            return COMMAND_MAP.get(text);
-        }
     }
 }

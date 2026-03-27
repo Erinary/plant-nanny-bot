@@ -2,6 +2,7 @@ package ru.erinary.plantnannybot.api.wizard.addplant;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import ru.erinary.plantnannybot.api.BotCommand;
 import ru.erinary.plantnannybot.api.BotMessages;
 import ru.erinary.plantnannybot.api.model.PlantModel;
 import ru.erinary.plantnannybot.api.router.dto.IncomingMessage;
@@ -56,6 +57,9 @@ public class AddPlantWizard implements ConversationWizard {
         if (StringUtils.isBlank(message.text())) {
             replyText = BotMessages.ADD_PLANT_NAME_NOT_EMPTY;
             newState = state;
+        } else if (message.text().equals(BotCommand.SKIP.getText())) {
+            replyText = BotMessages.STEP_SKIP_ERROR;
+            newState = state;
         } else {
             var draft = (AddPlantDraft) state.getDraft();
             draft.setName(message.text());
@@ -66,14 +70,21 @@ public class AddPlantWizard implements ConversationWizard {
         return new WizardStepResult(replyText, newState);
     }
 
+    //The last step of the wizard, so we must finish the plant creation
     private WizardStepResult handleAskNotes(final ConversationState state, final IncomingMessage message) {
         var draft = (AddPlantDraft) state.getDraft();
-        draft.setNotes(message.text());
-        var replyText = BotMessages.ADD_PLANT_SUCCESS;
+        if (message.text().equals(BotCommand.SKIP.getText())) {
+            draft.setNotes(StringUtils.EMPTY);
+        } else {
+            draft.setNotes(message.text());
+        }
+        return finishPlantCreation(draft, message.user().getId());
+    }
 
-        var newPlant = new PlantModel(draft.getName(), message.user().getId(), draft.getNotes());
+    private WizardStepResult finishPlantCreation(final AddPlantDraft draft, final Long tgUserId) {
+        var newPlant = new PlantModel(draft.getName(), tgUserId, draft.getNotes());
         plantService.save(newPlant);
-        return new WizardStepResult(replyText, null);
+        return new WizardStepResult(BotMessages.ADD_PLANT_SUCCESS, null);
     }
 
     @Override

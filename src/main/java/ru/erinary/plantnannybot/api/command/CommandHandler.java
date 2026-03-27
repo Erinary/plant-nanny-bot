@@ -1,6 +1,6 @@
 package ru.erinary.plantnannybot.api.command;
 
-import ru.erinary.plantnannybot.api.router.MessageRoutingService;
+import ru.erinary.plantnannybot.api.BotCommand;
 import ru.erinary.plantnannybot.api.router.dto.IncomingMessage;
 import ru.erinary.plantnannybot.api.router.dto.ReplyMessage;
 
@@ -22,5 +22,5 @@ public interface CommandHandler {
      *
      * @return command
      */
-    MessageRoutingService.Command command();
+    BotCommand command();
 }

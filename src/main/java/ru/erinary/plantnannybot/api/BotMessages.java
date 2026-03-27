@@ -37,6 +37,19 @@ public class BotMessages {
     public static final String EMPTY_PLANT_LIST = "You don't have any plants yet";
 
     /**
+     * Add plant wizard messages.
+     */
+    public static final String ADD_PLANT_ASK_NAME = "Please give your plant a name, or you can use /cancel command";
+
+    public static final String ADD_PLANT_NAME_NOT_EMPTY = "Plant name can't be empty, please try again";
+
+    public static final String ADD_PLANT_ASK_NOTES = """
+            Thank you! Now, please provide some notes about your plant.
+            Or, use /skip to skip this step or /cancel to cancel the operation.""";
+
+    public static final String ADD_PLANT_SUCCESS = "Thank you! Your plant was added successfully.";
+
+    /**
      * Cancel current action.
      */
     public static final String CANCEL_ACTION = "Current action was cancelled";
@@ -54,17 +67,14 @@ public class BotMessages {
             Please finish it first or send /cancel to cancel it.""";
 
     /**
-     * Add plant wizard messages.
+     * Error message when there is no active conversation step to skip.
      */
-    public static final String ADD_PLANT_ASK_NAME = "Please give your plant a name, or you can use /cancel command";
+    public static final String NO_ACTIVE_CONVERSATION_STEP_ERROR = "There is no active conversation step to skip";
 
-    public static final String ADD_PLANT_NAME_NOT_EMPTY = "Plant name can't be empty, please try again";
-
-    public static final String ADD_PLANT_ASK_NOTES = """
-            Thank you! Now, please provide some notes about your plant.
-            Or, use /skip to skip this step or /cancel to cancel the operation.""";
-
-    public static final String ADD_PLANT_SUCCESS = "Thank you! Your plant was added successfully.";
+    /**
+     * Error message when the user tries to skip the step, but it's not possible.
+     */
+    public static final String STEP_SKIP_ERROR = "Current step can't be skipped, please try again";
 
     /**
      * Unknown command.

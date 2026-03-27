@@ -3,9 +3,9 @@ package ru.erinary.plantnannybot.api.command.start;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import ru.erinary.plantnannybot.api.BotCommand;
 import ru.erinary.plantnannybot.api.BotMessages;
 import ru.erinary.plantnannybot.api.command.CommandHandler;
-import ru.erinary.plantnannybot.api.router.MessageRoutingService;
 import ru.erinary.plantnannybot.api.router.dto.IncomingMessage;
 import ru.erinary.plantnannybot.api.router.dto.ReplyMessage;
 
@@ -22,7 +22,7 @@ public class StartCommandHandler implements CommandHandler {
     }
 
     @Override
-    public MessageRoutingService.Command command() {
-        return MessageRoutingService.Command.START;
+    public BotCommand command() {
+        return BotCommand.START;
     }
 }
