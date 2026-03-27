@@ -15,6 +15,7 @@ public class BotMessages {
             Here's what you can do:
             /register – Register yourself to start using the bot
             /plants – View your plants and their watering schedules
+            /addplant - Add a new plant to your list
             
             More features coming soon!
             """;

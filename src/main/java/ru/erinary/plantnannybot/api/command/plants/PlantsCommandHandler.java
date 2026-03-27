@@ -44,6 +44,6 @@ public class PlantsCommandHandler implements CommandHandler {
 
     @Override
     public MessageRoutingService.Command command() {
-        return null;
+        return MessageRoutingService.Command.PLANTS;
     }
 }
